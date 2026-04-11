@@ -76,6 +76,7 @@ interface TableState {
   duplicateDay: (weekId: string) => void;
   setZoomLevel: (level: number) => void;
   toggleCellStyle: (weekId: string, rowId: string, field: string, style: keyof CellStyle) => void;
+  setCellStyle: (weekId: string, rowId: string, field: string, style: Partial<CellStyle>) => void;
 }
 
 export const useTableStore = create<TableState>()(
@@ -193,6 +194,33 @@ export const useTableStore = create<TableState>()(
                     [field]: {
                       ...currentStyle,
                       [style]: !currentStyle[style]
+                    }
+                  }
+                };
+              })
+            }))
+          };
+        });
+        return { weeks: newWeeks };
+      }),
+      setCellStyle: (weekId, rowId, field, style) => set((state) => {
+        const newWeeks = state.weeks.map(week => {
+          if (week.id !== weekId) return week;
+          return {
+            ...week,
+            days: week.days.map(day => ({
+              ...day,
+              rows: day.rows.map(row => {
+                if (row.id !== rowId) return row;
+                const currentStyles = row.cellStyles || {};
+                const currentStyle = currentStyles[field] || {};
+                return {
+                  ...row,
+                  cellStyles: {
+                    ...currentStyles,
+                    [field]: {
+                      ...currentStyle,
+                      ...style
                     }
                   }
                 };

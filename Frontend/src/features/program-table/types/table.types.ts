@@ -4,6 +4,8 @@ export interface CellStyle {
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;
+  color?: string;
+  backgroundColor?: string;
 }
 
 export interface ProgramRow {

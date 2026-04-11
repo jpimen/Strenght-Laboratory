@@ -1,10 +1,12 @@
 "use client";
 
-import { ChevronDown, Bold, Italic, Underline, ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { ChevronDown, Bold, Italic, Underline, ArrowUp, ArrowDown, Trash2, AlignLeft, AlignCenter, AlignRight, PaintBucket } from "lucide-react";
 import { useTableStore } from "../store/tableStore";
+import { ColorPicker } from "./ColorPicker";
+import { cn } from "@/lib/utils";
 
 export const Toolbar = () => {
-  const { activeCell, activeWeekId, deleteRow, zoomLevel, setZoomLevel, weeks, toggleCellStyle } = useTableStore();
+  const { activeCell, activeWeekId, deleteRow, zoomLevel, setZoomLevel, weeks, toggleCellStyle, setCellStyle } = useTableStore();
   
   const handleZoomIn = () => setZoomLevel(Math.min(zoomLevel + 1, 24));
   const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 1, 8));
@@ -15,18 +17,31 @@ export const Toolbar = () => {
     }
   };
 
-  const activeWeek = weeks.find(w => w.id === activeWeekId);
-  const activeRow = activeWeek?.days[0]?.rows.find(r => r.id === activeCell?.rowId);
-  const activeStyles = (activeCell && activeRow?.cellStyles?.[activeCell.field]) || {};
-
   const handleToggleStyle = (style: 'bold' | 'italic' | 'underline') => {
     if (activeCell) {
       toggleCellStyle(activeWeekId, activeCell.rowId, activeCell.field, style);
     }
   };
 
+  const handleSetColor = (color: string | undefined) => {
+    if (activeCell) {
+      setCellStyle(activeWeekId, activeCell.rowId, activeCell.field, { color });
+    }
+  };
+
+  const handleSetBgColor = (backgroundColor: string | undefined) => {
+    if (activeCell) {
+      setCellStyle(activeWeekId, activeCell.rowId, activeCell.field, { backgroundColor });
+    }
+  };
+
+  const activeWeek = weeks.find(w => w.id === activeWeekId);
+  const activeRow = activeWeek?.days[0]?.rows.find(r => r.id === activeCell?.rowId);
+  const activeStyles = (activeCell && activeRow?.cellStyles?.[activeCell.field]) || {};
+
   return (
-    <div className="px-8 py-3 flex items-center space-x-8 border-b border-[#222] bg-[#1a1a1a] overflow-x-auto">
+    <div className="px-8 py-3 flex items-center space-x-8 border-b border-[#222] bg-[#1a1a1a]">
+      {/* ... Inter Dropdown ... */}
       <div className="flex items-center space-x-2 text-white font-sans cursor-pointer group">
         <span className="text-[11px] uppercase font-bold tracking-wider mr-2 group-hover:text-[#facc15] transition-colors">
           Inter
@@ -34,6 +49,8 @@ export const Toolbar = () => {
         <ChevronDown className="w-3 h-3 text-[#666] group-hover:text-[#facc15] transition-colors" />
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
+      
+      {/* ... Zoom Controls ... */}
       <div className="flex items-center space-x-4 font-sans text-xs text-white select-none">
         <span className="text-[9px] uppercase font-black text-[#555] tracking-widest mr-1">Zoom:</span>
         <span 
@@ -47,6 +64,8 @@ export const Toolbar = () => {
         >+</span>
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
+
+      {/* Formatting Tools */}
       <div className="flex items-center space-x-5 text-[#888]">
         <Bold 
           onClick={() => handleToggleStyle('bold')}
@@ -60,18 +79,42 @@ export const Toolbar = () => {
           onClick={() => handleToggleStyle('underline')}
           className={`w-4 h-4 cursor-pointer transition-colors ${activeStyles.underline ? 'text-[#facc15]' : 'hover:text-white'}`} 
         />
-        <div className="flex flex-col items-center cursor-pointer group">
-          <span className="font-serif font-black text-sm leading-none text-white group-hover:text-[#facc15] transition-colors">
-            A
-          </span>
-          <div className="w-4 h-[3px] bg-[#facc15] mt-0.5"></div>
-        </div>
-        <div className="flex flex-col items-center cursor-pointer group">
-          <div className="w-4 h-4 bg-[#666] group-hover:bg-[#888] transition-colors rounded-sm flex items-center justify-center text-[10px] text-black font-bold">
-            A
-          </div>
-          <div className="w-4 h-[3px] bg-[#444] mt-0.5 group-hover:bg-[#666] transition-colors"></div>
-        </div>
+        
+        {/* Text Color Picker */}
+        <ColorPicker
+          title="Text Color"
+          selectedColor={activeStyles.color}
+          onSelect={handleSetColor}
+          trigger={
+            <div className="flex flex-col items-center cursor-pointer group">
+              <span className={cn(
+                "font-serif font-black text-sm leading-none transition-colors",
+                activeStyles.color ? "opacity-100" : "text-[#777] group-hover:text-white"
+              )} style={{ color: activeStyles.color }}>
+                A
+              </span>
+              <div className="w-4 h-[3px] mt-0.5" style={{ backgroundColor: activeStyles.color || "#facc15" }}></div>
+            </div>
+          }
+        />
+
+        {/* Fill Color Picker */}
+        <ColorPicker
+          title="Fill Color"
+          selectedColor={activeStyles.backgroundColor}
+          onSelect={handleSetBgColor}
+          trigger={
+            <div className="flex flex-col items-center cursor-pointer group">
+              <div className={cn(
+                "w-4 h-4 rounded-sm flex items-center justify-center transition-all border border-[#444]",
+                activeStyles.backgroundColor ? "opacity-100 shadow-sm" : "bg-transparent group-hover:border-white"
+              )} style={{ backgroundColor: activeStyles.backgroundColor }}>
+                <PaintBucket className={cn("w-2.5 h-2.5", activeStyles.backgroundColor ? "text-white mix-blend-difference" : "text-[#777] group-hover:text-white")} />
+              </div>
+              <div className="w-4 h-[3px] mt-0.5" style={{ backgroundColor: activeStyles.backgroundColor || "#444" }}></div>
+            </div>
+          }
+        />
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
       <div className="flex items-center space-x-6">
