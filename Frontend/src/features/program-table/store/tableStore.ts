@@ -65,6 +65,7 @@ interface TableState {
   weeks: WeekPlan[];
   activeWeekId: string;
   activeCell: { rowId: string; field: keyof ProgramRow } | null;
+  zoomLevel: number;
   // Actions
   setActiveWeek: (weekId: string) => void;
   setActiveCell: (rowId: string | null, field?: keyof ProgramRow) => void;
@@ -72,6 +73,7 @@ interface TableState {
   addRow: (weekId: string, index?: number) => void;
   deleteRow: (weekId: string, rowId: string) => void;
   duplicateDay: (weekId: string) => void;
+  setZoomLevel: (level: number) => void;
 }
 
 export const useTableStore = create<TableState>((set) => ({
@@ -102,6 +104,7 @@ export const useTableStore = create<TableState>((set) => ({
   ],
   activeWeekId: "w1",
   activeCell: null,
+  zoomLevel: 12,
   setActiveWeek: (weekId) => set((state) => ({ activeWeekId: weekId })),
   setActiveCell: (rowId, field) => set(() => {
     if (!rowId || !field) return { activeCell: null };
@@ -167,4 +170,5 @@ export const useTableStore = create<TableState>((set) => ({
     // in a real app you'd probably create `DAY 2`
     return state;
   }),
+  setZoomLevel: (level) => set({ zoomLevel: level }),
 }));

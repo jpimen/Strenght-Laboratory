@@ -4,8 +4,11 @@ import { ChevronDown, Bold, Italic, Underline, ArrowUp, ArrowDown, Trash2, Align
 import { useTableStore } from "../store/tableStore";
 
 export const Toolbar = () => {
-  const { activeCell, activeWeekId, deleteRow } = useTableStore();
+  const { activeCell, activeWeekId, deleteRow, zoomLevel, setZoomLevel } = useTableStore();
   
+  const handleZoomIn = () => setZoomLevel(Math.min(zoomLevel + 1, 24));
+  const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 1, 8));
+
   const handleDeleteRow = () => {
     if (activeCell) {
       deleteRow(activeWeekId, activeCell.rowId);
@@ -21,10 +24,16 @@ export const Toolbar = () => {
         <ChevronDown className="w-3 h-3 text-[#666] group-hover:text-[#facc15] transition-colors" />
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
-      <div className="flex items-center space-x-4 font-sans text-xs text-white">
-        <span className="cursor-pointer text-[#666] hover:text-[#facc15] font-bold">—</span>
-        <span className="font-bold text-sm">12</span>
-        <span className="cursor-pointer text-[#666] hover:text-[#facc15] font-bold">+</span>
+      <div className="flex items-center space-x-4 font-sans text-xs text-white select-none">
+        <span 
+          onClick={handleZoomOut}
+          className="cursor-pointer text-[#666] hover:text-[#facc15] font-bold w-4 h-4 flex items-center justify-center transition-colors"
+        >—</span>
+        <span className="font-bold text-sm min-w-[1.5rem] text-center">{zoomLevel}</span>
+        <span 
+          onClick={handleZoomIn}
+          className="cursor-pointer text-[#666] hover:text-[#facc15] font-bold w-4 h-4 flex items-center justify-center transition-colors"
+        >+</span>
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
       <div className="flex items-center space-x-5 text-[#888]">

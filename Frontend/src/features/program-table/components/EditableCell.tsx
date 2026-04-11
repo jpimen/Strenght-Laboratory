@@ -60,12 +60,13 @@ export const EditableCell = ({ rowId, field, value, className, align = "center",
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           className={cn(
-            "w-full bg-transparent border-none outline-none font-sans text-[11px]",
+            "w-full bg-transparent border-none outline-none font-sans",
             align === "left" && "text-left",
             align === "center" && "text-center",
             align === "right" && "text-right",
             field === "notes" && "italic text-[#777]"
           )}
+          style={{ fontSize: `${zoomLevel}px` }}
         />
       ) : (
         <span className={cn("truncate w-full", field === "notes" && "italic text-[#777]", isHeaderFeature ? "text-[#d4d4d4]" : "text-[#d4d4d4]")}>

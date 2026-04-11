@@ -11,7 +11,7 @@ import { Copy, Plus, RotateCcw, Settings, Download } from "lucide-react";
 
 export const ProgramTable = () => {
   useKeyboardNav();
-  const { meta, weeks, activeWeekId, addRow, duplicateDay } = useTableStore();
+  const { meta, weeks, activeWeekId, addRow, duplicateDay, zoomLevel } = useTableStore();
   
   const activeWeek = weeks.find(w => w.id === activeWeekId);
   const rows = activeWeek?.days[0]?.rows || [];
@@ -84,7 +84,11 @@ export const ProgramTable = () => {
           ))}
           {/* Empty padding rows for look and feel */}
           {Array.from({ length: Math.max(0, 15 - rows.length) }).map((_, idx) => (
-            <div key={`empty-${idx}`} className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#222] text-[11px] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none">
+            <div 
+              key={`empty-${idx}`} 
+              className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
+              style={{ fontSize: `${zoomLevel}px` }}
+            >
               <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#555] font-sans font-bold">{rows.length + idx + 1}</div>
               <div className="px-4 py-3 border-r border-[#333]"></div>
               <div className="px-2 py-3 border-r border-[#333]"></div>

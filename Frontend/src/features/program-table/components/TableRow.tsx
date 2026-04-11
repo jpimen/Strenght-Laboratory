@@ -3,6 +3,7 @@
 import { ProgramRow } from "../types/table.types";
 import { EditableCell } from "./EditableCell";
 import { IntensityBadge } from "./IntensityBadge";
+import { useTableStore } from "../store/tableStore";
 
 interface TableRowProps {
   row: ProgramRow;
@@ -10,8 +11,13 @@ interface TableRowProps {
 }
 
 export const TableRow = ({ row, index }: TableRowProps) => {
+  const { zoomLevel } = useTableStore();
+  
   return (
-    <div className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#222] text-[11px] hover:bg-[#1a1a1a] transition-colors group">
+    <div 
+      className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#222] hover:bg-[#1a1a1a] transition-colors group"
+      style={{ fontSize: `${zoomLevel}px` }}
+    >
       <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#666] font-sans font-bold group-hover:bg-[#222] flex items-center justify-center">
         {index + 1}
       </div>
