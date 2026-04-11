@@ -67,7 +67,6 @@ interface TableState {
   activeWeekId: string;
   activeCell: { rowId: string; field: keyof ProgramRow } | null;
   zoomLevel: number;
-  isHydrated: boolean;
   // Actions
   setActiveWeek: (weekId: string) => void;
   setActiveCell: (rowId: string | null, field?: keyof ProgramRow) => void;
@@ -109,7 +108,6 @@ export const useTableStore = create<TableState>()(
       activeWeekId: "w1",
       activeCell: null,
       zoomLevel: 12,
-      isHydrated: false,
       setActiveWeek: (weekId) => set((state) => ({ activeWeekId: weekId })),
       setActiveCell: (rowId, field) => set(() => {
         if (!rowId || !field) return { activeCell: null };
@@ -176,13 +174,9 @@ export const useTableStore = create<TableState>()(
         return state;
       }),
       setZoomLevel: (level) => set({ zoomLevel: level }),
-      set: (fn: any) => set(fn),
     }),
     {
       name: "strength-laboratory-storage",
-      onRehydrateStorage: () => (state) => {
-        state?.set({ isHydrated: true });
-      },
     }
   )
 );
