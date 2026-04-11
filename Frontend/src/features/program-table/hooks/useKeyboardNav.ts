@@ -23,6 +23,25 @@ export const useKeyboardNav = () => {
         duplicateDay(activeWeekId);
         return;
       }
+
+      // Formatting shortcuts
+      if (e.ctrlKey && activeCell) {
+        if (e.key === 'b') {
+          e.preventDefault();
+          useTableStore.getState().toggleCellStyle(activeWeekId, activeCell.rowId, activeCell.field, 'bold');
+          return;
+        }
+        if (e.key === 'i') {
+          e.preventDefault();
+          useTableStore.getState().toggleCellStyle(activeWeekId, activeCell.rowId, activeCell.field, 'italic');
+          return;
+        }
+        if (e.key === 'u') {
+          e.preventDefault();
+          useTableStore.getState().toggleCellStyle(activeWeekId, activeCell.rowId, activeCell.field, 'underline');
+          return;
+        }
+      }
       
       if (!activeCell) return;
       

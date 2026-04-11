@@ -1,5 +1,11 @@
 export type IntensityLevel = "LOW" | "MED" | "HIGH" | "MAX" | "PEAK" | "NONE";
 
+export interface CellStyle {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+}
+
 export interface ProgramRow {
   id: string;
   exercise: string;
@@ -10,6 +16,7 @@ export interface ProgramRow {
   intensity: IntensityLevel;
   rest: number; // in seconds
   notes: string;
+  cellStyles?: Record<string, CellStyle>;
 }
 
 export interface DayPlan {

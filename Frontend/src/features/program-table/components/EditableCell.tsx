@@ -15,10 +15,13 @@ interface EditableCellProps {
 }
 
 export const EditableCell = ({ rowId, field, value, className, align = "center", isHeaderFeature }: EditableCellProps) => {
-  const { activeCell, setActiveCell, updateRow, activeWeekId, zoomLevel } = useTableStore();
+  const { activeCell, setActiveCell, updateRow, activeWeekId, zoomLevel, weeks } = useTableStore();
   const [localValue, setLocalValue] = useState(value);
   const isEditing = activeCell?.rowId === rowId && activeCell?.field === field;
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const row = weeks.find(w => w.id === activeWeekId)?.days[0]?.rows.find(r => r.id === rowId);
+  const cellStyle = row?.cellStyles?.[field] || {};
 
   useEffect(() => {
     setLocalValue(value);
@@ -60,16 +63,23 @@ export const EditableCell = ({ rowId, field, value, className, align = "center",
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           className={cn(
-            "w-full bg-transparent border-none outline-none font-sans",
+            "w-full bg-transparent border-none outline-none font-sans transition-all duration-200",
             align === "left" && "text-left",
             align === "center" && "text-center",
             align === "right" && "text-right",
-            field === "notes" && "italic text-[#777]"
+            (cellStyle.bold || field === "exercise") && "font-black",
+            (cellStyle.italic || field === "notes") && "italic",
+            cellStyle.underline && "underline"
           )}
           style={{ fontSize: `${zoomLevel}px` }}
         />
       ) : (
-        <span className={cn("truncate w-full", field === "notes" && "italic text-[#777]", isHeaderFeature ? "text-[#d4d4d4]" : "text-[#d4d4d4]")}>
+        <span className={cn(
+          "truncate w-full transition-all duration-200", 
+          (cellStyle.bold || field === "exercise") ? "font-black text-white" : "text-[#d4d4d4]",
+          (cellStyle.italic || field === "notes") && "italic text-[#888]",
+          cellStyle.underline && "underline decoration-[#facc15]/50"
+        )}>
           {value || <span className="text-[#333]">...</span>}
         </span>
       )}

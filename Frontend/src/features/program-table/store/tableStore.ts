@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
-import { ProgramRow, ProgramMeta, WeekPlan } from "../types/table.types";
+import { ProgramRow, ProgramMeta, WeekPlan, CellStyle } from "../types/table.types";
 
 const MOCK_ROWS: ProgramRow[] = [
   {
@@ -75,6 +75,7 @@ interface TableState {
   deleteRow: (weekId: string, rowId: string) => void;
   duplicateDay: (weekId: string) => void;
   setZoomLevel: (level: number) => void;
+  toggleCellStyle: (weekId: string, rowId: string, field: string, style: keyof CellStyle) => void;
 }
 
 export const useTableStore = create<TableState>()(
@@ -174,6 +175,33 @@ export const useTableStore = create<TableState>()(
         return state;
       }),
       setZoomLevel: (level) => set({ zoomLevel: level }),
+      toggleCellStyle: (weekId, rowId, field, style) => set((state) => {
+        const newWeeks = state.weeks.map(week => {
+          if (week.id !== weekId) return week;
+          return {
+            ...week,
+            days: week.days.map(day => ({
+              ...day,
+              rows: day.rows.map(row => {
+                if (row.id !== rowId) return row;
+                const currentStyles = row.cellStyles || {};
+                const currentStyle = currentStyles[field] || {};
+                return {
+                  ...row,
+                  cellStyles: {
+                    ...currentStyles,
+                    [field]: {
+                      ...currentStyle,
+                      [style]: !currentStyle[style]
+                    }
+                  }
+                };
+              })
+            }))
+          };
+        });
+        return { weeks: newWeeks };
+      }),
     }),
     {
       name: "strength-laboratory-storage",

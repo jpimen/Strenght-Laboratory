@@ -4,7 +4,7 @@ import { ChevronDown, Bold, Italic, Underline, ArrowUp, ArrowDown, Trash2, Align
 import { useTableStore } from "../store/tableStore";
 
 export const Toolbar = () => {
-  const { activeCell, activeWeekId, deleteRow, zoomLevel, setZoomLevel } = useTableStore();
+  const { activeCell, activeWeekId, deleteRow, zoomLevel, setZoomLevel, weeks, toggleCellStyle } = useTableStore();
   
   const handleZoomIn = () => setZoomLevel(Math.min(zoomLevel + 1, 24));
   const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 1, 8));
@@ -12,6 +12,16 @@ export const Toolbar = () => {
   const handleDeleteRow = () => {
     if (activeCell) {
       deleteRow(activeWeekId, activeCell.rowId);
+    }
+  };
+
+  const activeWeek = weeks.find(w => w.id === activeWeekId);
+  const activeRow = activeWeek?.days[0]?.rows.find(r => r.id === activeCell?.rowId);
+  const activeStyles = (activeCell && activeRow?.cellStyles?.[activeCell.field]) || {};
+
+  const handleToggleStyle = (style: 'bold' | 'italic' | 'underline') => {
+    if (activeCell) {
+      toggleCellStyle(activeWeekId, activeCell.rowId, activeCell.field, style);
     }
   };
 
@@ -38,9 +48,18 @@ export const Toolbar = () => {
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
       <div className="flex items-center space-x-5 text-[#888]">
-        <Bold className="w-4 h-4 cursor-pointer text-white" />
-        <Italic className="w-4 h-4 cursor-pointer hover:text-white" />
-        <Underline className="w-4 h-4 cursor-pointer hover:text-white" />
+        <Bold 
+          onClick={() => handleToggleStyle('bold')}
+          className={`w-4 h-4 cursor-pointer transition-colors ${activeStyles.bold ? 'text-[#facc15]' : 'hover:text-white'}`} 
+        />
+        <Italic 
+          onClick={() => handleToggleStyle('italic')}
+          className={`w-4 h-4 cursor-pointer transition-colors ${activeStyles.italic ? 'text-[#facc15]' : 'hover:text-white'}`} 
+        />
+        <Underline 
+          onClick={() => handleToggleStyle('underline')}
+          className={`w-4 h-4 cursor-pointer transition-colors ${activeStyles.underline ? 'text-[#facc15]' : 'hover:text-white'}`} 
+        />
         <div className="flex flex-col items-center cursor-pointer group">
           <span className="font-serif font-black text-sm leading-none text-white group-hover:text-[#facc15] transition-colors">
             A
