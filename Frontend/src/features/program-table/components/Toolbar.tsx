@@ -25,6 +25,7 @@ export const Toolbar = () => {
       </div>
       <div className="h-5 w-px bg-[#333]"></div>
       <div className="flex items-center space-x-4 font-sans text-xs text-white select-none">
+        <span className="text-[9px] uppercase font-black text-[#555] tracking-widest mr-1">Zoom:</span>
         <span 
           onClick={handleZoomOut}
           className="cursor-pointer text-[#666] hover:text-[#facc15] font-bold w-4 h-4 flex items-center justify-center transition-colors"

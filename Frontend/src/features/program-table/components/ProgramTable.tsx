@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 
 import { useTableStore } from "../store/tableStore";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
@@ -12,6 +13,19 @@ import { Copy, Plus, RotateCcw, Settings, Download } from "lucide-react";
 export const ProgramTable = () => {
   useKeyboardNav();
   const { meta, weeks, activeWeekId, addRow, duplicateDay, zoomLevel } = useTableStore();
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  if (!hasHydrated) {
+    return (
+      <div className="h-screen w-full bg-[#0d0d0d] flex items-center justify-center font-sans font-black text-[#1a1a1a] text-4xl italic tracking-tighter animate-pulse uppercase">
+        Restoring Laboratory...
+      </div>
+    );
+  }
   
   const activeWeek = weeks.find(w => w.id === activeWeekId);
   const rows = activeWeek?.days[0]?.rows || [];

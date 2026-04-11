@@ -15,7 +15,7 @@ interface EditableCellProps {
 }
 
 export const EditableCell = ({ rowId, field, value, className, align = "center", isHeaderFeature }: EditableCellProps) => {
-  const { activeCell, setActiveCell, updateRow, activeWeekId } = useTableStore();
+  const { activeCell, setActiveCell, updateRow, activeWeekId, zoomLevel } = useTableStore();
   const [localValue, setLocalValue] = useState(value);
   const isEditing = activeCell?.rowId === rowId && activeCell?.field === field;
   const inputRef = useRef<HTMLInputElement>(null);
