@@ -6,19 +6,21 @@ import { ProgramRow, ProgramMeta, WeekPlan, CellStyle } from "../types/table.typ
 import { ColumnDefinition } from "../types/table.types";
 
 const INITIAL_COLUMNS: ColumnDefinition[] = [
-  { id: "exercise", label: "A: EXERCISE", width: "2.5fr" },
-  { id: "sets", label: "B: SETS", width: "1fr" },
-  { id: "reps", label: "C: REPS", width: "1fr" },
-  { id: "load", label: "D: LOAD (%/KG)", width: "1.5fr" },
-  { id: "rpe", label: "E: RPE", width: "1fr" },
-  { id: "intensity", label: "F: INTENSITY", width: "1fr" },
-  { id: "rest", label: "G: REST (S)", width: "1fr" },
-  { id: "notes", label: "H: NOTES", width: "3.5fr" },
+  { id: "exercise", width: "2.5fr" },
+  { id: "sets", width: "1fr" },
+  { id: "reps", width: "1fr" },
+  { id: "load", width: "1.5fr" },
+  { id: "rpe", width: "1fr" },
+  { id: "intensity", width: "1fr" },
+  { id: "rest", width: "1fr" },
+  { id: "notes", width: "3.5fr" },
+  { id: "video", width: "1.5fr" },
+  { id: "tempo", width: "1fr" },
+  { id: "superset", width: "1.5fr" },
 ];
 
-// Only core columns A through H
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-// No I-Z loop
+const DEFAULT_DYNAMIC_COLUMN_WIDTH = "1fr";
+const BASE_COLUMN_IDS = new Set(INITIAL_COLUMNS.slice(0, 8).map((column) => column.id));
 
 const generateInitialRows = (count: number): ProgramRow[] => {
   const rows: ProgramRow[] = [];
@@ -58,6 +60,8 @@ interface TableState {
   setActiveCell: (rowId: string | null, field?: string) => void;
   updateRow: (weekId: string, rowId: string, field: string, value: any) => void;
   addRow: (weekId: string, index?: number) => void;
+  addColumn: (weekId: string) => void;
+  deleteColumn: (columnId: string) => void;
   deleteRow: (weekId: string, rowId: string) => void;
   duplicateDay: (weekId: string) => void;
   setZoomLevel: (level: number) => void;
@@ -150,6 +154,83 @@ export const useTableStore = create<TableState>()(
           };
         });
         return { weeks: newWeeks };
+      }),
+      addColumn: (weekId) => set((state) => {
+        const newColumn: ColumnDefinition = {
+          id: `col_${uuidv4()}`,
+          width: DEFAULT_DYNAMIC_COLUMN_WIDTH,
+        };
+
+        const newWeeks = state.weeks.map((week) => {
+          if (week.id !== weekId) return week;
+          if (week.days.length === 0) return week;
+
+          return {
+            ...week,
+            days: week.days.map((day) => ({
+              ...day,
+              rows: day.rows.map((row) => ({
+                ...row,
+                [newColumn.id]: row[newColumn.id] ?? "",
+              })),
+            })),
+          };
+        });
+
+        return {
+          columns: [...state.columns, newColumn],
+          weeks: newWeeks,
+        };
+      }),
+      deleteColumn: (columnId) => set((state) => {
+        if (BASE_COLUMN_IDS.has(columnId)) {
+          return state;
+        }
+
+        const nextColumns = state.columns.filter((column) => column.id !== columnId);
+        if (nextColumns.length === state.columns.length) {
+          return state;
+        }
+
+        const nextWeeks = state.weeks.map((week) => ({
+          ...week,
+          days: week.days.map((day) => ({
+            ...day,
+            rows: day.rows.map((row) => {
+              const rowWithoutColumn = { ...row };
+              delete rowWithoutColumn[columnId];
+
+              if (!row.cellStyles || !row.cellStyles[columnId]) {
+                return rowWithoutColumn;
+              }
+
+              const remainingStyles = { ...row.cellStyles };
+              delete remainingStyles[columnId];
+              return {
+                ...rowWithoutColumn,
+                cellStyles: Object.keys(remainingStyles).length > 0 ? remainingStyles : undefined,
+              };
+            }),
+          })),
+        }));
+
+        const fallbackField = nextColumns[nextColumns.length - 1]?.id;
+
+        const sanitizeSelection = (
+          selection: { rowId: string; field: string } | null
+        ): { rowId: string; field: string } | null => {
+          if (!selection) return null;
+          if (selection.field !== columnId) return selection;
+          return fallbackField ? { ...selection, field: fallbackField } : null;
+        };
+
+        return {
+          columns: nextColumns,
+          weeks: nextWeeks,
+          activeCell: sanitizeSelection(state.activeCell),
+          selectionStart: sanitizeSelection(state.selectionStart),
+          selectionEnd: sanitizeSelection(state.selectionEnd),
+        };
       }),
       deleteRow: (weekId, rowId) => set((state) => {
         const newWeeks = state.weeks.map(week => {

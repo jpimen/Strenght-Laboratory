@@ -10,7 +10,7 @@ export interface CellStyle {
 
 export interface ColumnDefinition {
   id: string; // The field key in the row object (e.g., 'exercise' or 'A', 'B')
-  label: string; // The display name
+  label?: string; // Legacy display name (headers are auto-generated from index)
   width: string; // CSS width (e.g., '2.5fr' or '150px')
 }
 

@@ -5,6 +5,7 @@ import { EditableCell } from "./EditableCell";
 import { IntensityBadge } from "./IntensityBadge";
 import { useTableStore } from "../store/tableStore";
 import { cn } from "@/lib/utils";
+import { getGridStyle } from "../utils/grid";
 
 interface TableRowProps {
   row: ProgramRow;
@@ -51,14 +52,14 @@ export const TableRow = ({ row, index }: TableRowProps) => {
     }
   };
 
-  const gridTemplate = `40px ${columns.map(c => c.width).join(' ')}`;
+  const gridStyle = getGridStyle(columns);
 
   return (
     <div 
-      className="grid border-b border-[#222] hover:bg-[#1a1a1a] transition-colors group relative"
-      style={{ fontSize: `${zoomLevel}px`, gridTemplateColumns: gridTemplate }}
+      className="grid w-max border-b border-[#222] hover:bg-[#1a1a1a] transition-colors group relative"
+      style={{ fontSize: `${zoomLevel}px`, ...gridStyle }}
     >
-      <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#666] font-sans font-bold group-hover:bg-[#222] flex items-center justify-center shrink-0 w-[40px]">
+      <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#666] font-sans font-bold group-hover:bg-[#222] flex items-center justify-center shrink-0 w-[40px] sticky left-0 z-10">
         {index + 1}
       </div>
       

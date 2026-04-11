@@ -8,12 +8,13 @@ import { TableRow } from "./TableRow";
 import { Toolbar } from "./Toolbar";
 import { WeekTabs } from "./WeekTabs";
 import { SummaryPanel } from "./SummaryPanel";
-import { Copy, Plus, RotateCcw, Settings, Download } from "lucide-react";
+import { Copy, Plus, RotateCcw, Settings, Download, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getGridStyle } from "../utils/grid";
 
 export const ProgramTable = () => {
   useKeyboardNav();
-  const { meta, weeks, activeWeekId, addRow, duplicateDay, zoomLevel, setIsDraggingSelection, columns } = useTableStore();
+  const { meta, weeks, activeWeekId, addRow, addColumn, deleteColumn, duplicateDay, zoomLevel, setIsDraggingSelection, columns } = useTableStore();
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
@@ -37,7 +38,8 @@ export const ProgramTable = () => {
   
   const activeWeek = weeks.find(w => w.id === activeWeekId);
   const rows = activeWeek?.days[0]?.rows || [];
-  const gridTemplate = `40px ${columns.map(c => c.width).join(' ')}`;
+  const gridStyle = getGridStyle(columns);
+  const lastRemovableColumn = columns.length > 8 ? columns[columns.length - 1] : null;
 
   return (
     <div className="h-screen w-full bg-[#0d0d0d] text-[#a0a0a0] font-mono flex flex-col overflow-hidden">
@@ -99,8 +101,8 @@ export const ProgramTable = () => {
       <WeekTabs />
 
       {/* Grid Content */}
-      <div className="flex-1 overflow-y-auto bg-[#141414] select-none">
-        <div className="min-w-full">
+      <div className="flex-1 overflow-auto bg-[#141414] select-none">
+        <div className="w-max min-w-full">
           <TableHeader />
           {rows.map((row, idx) => (
             <TableRow key={row.id} row={row} index={idx} />
@@ -110,10 +112,10 @@ export const ProgramTable = () => {
           {Array.from({ length: Math.max(0, 15 - rows.length) }).map((_, idx) => (
             <div 
               key={`empty-${idx}`} 
-              className="grid border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
-              style={{ fontSize: `${zoomLevel}px`, gridTemplateColumns: gridTemplate }}
+              className="grid w-max border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
+              style={{ fontSize: `${zoomLevel}px`, ...gridStyle }}
             >
-              <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#333] font-sans font-bold flex items-center justify-center shrink-0 w-[40px]">
+              <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#333] font-sans font-bold flex items-center justify-center shrink-0 w-[40px] sticky left-0 z-10">
                 {rows.length + idx + 1}
               </div>
               {columns.map((col, cIdx) => (
@@ -136,6 +138,23 @@ export const ProgramTable = () => {
           <button onClick={() => addRow(activeWeekId)} className="bg-[#facc15] hover:bg-[#eab308] text-black font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm shadow-md">
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Add Row</span>
+          </button>
+          <button onClick={() => addColumn(activeWeekId)} className="bg-[#222] text-white hover:bg-[#333] font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm border border-[#333]">
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Add Column</span>
+          </button>
+          <button
+            onClick={() => lastRemovableColumn && deleteColumn(lastRemovableColumn.id)}
+            disabled={!lastRemovableColumn}
+            className={cn(
+              "font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm border",
+              lastRemovableColumn
+                ? "bg-[#222] text-white hover:bg-[#333] border-[#333]"
+                : "bg-[#151515] text-[#555] border-[#222] cursor-not-allowed"
+            )}
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete Column</span>
           </button>
           <button onClick={() => duplicateDay(activeWeekId)} className="bg-[#222] text-white hover:bg-[#333] font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm border border-[#333]">
             <Copy className="w-4 h-4" />
