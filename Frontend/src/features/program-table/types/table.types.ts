@@ -11,7 +11,7 @@ export interface CellStyle {
 export interface ColumnDefinition {
   id: string; // The field key in the row object (e.g., 'exercise' or 'A', 'B')
   label?: string; // Legacy display name (headers are auto-generated from index)
-  width: string; // CSS width (e.g., '2.5fr' or '150px')
+  width: number | string; // px width (supports legacy string values from persisted state)
 }
 
 export interface ProgramRow {

@@ -4,23 +4,29 @@ import { v4 as uuidv4 } from "uuid";
 import { ProgramRow, ProgramMeta, WeekPlan, CellStyle } from "../types/table.types";
 
 import { ColumnDefinition } from "../types/table.types";
+import { DEFAULT_ROW_HEIGHT, MIN_COLUMN_WIDTH, MIN_ROW_HEIGHT, getDefaultColumnWidth } from "../utils/grid";
 
 const INITIAL_COLUMNS: ColumnDefinition[] = [
-  { id: "exercise", width: "2.5fr" },
-  { id: "sets", width: "1fr" },
-  { id: "reps", width: "1fr" },
-  { id: "load", width: "1.5fr" },
-  { id: "rpe", width: "1fr" },
-  { id: "intensity", width: "1fr" },
-  { id: "rest", width: "1fr" },
-  { id: "notes", width: "3.5fr" },
-  { id: "video", width: "1.5fr" },
-  { id: "tempo", width: "1fr" },
-  { id: "superset", width: "1.5fr" },
+  { id: "exercise", width: getDefaultColumnWidth("exercise") },
+  { id: "sets", width: getDefaultColumnWidth("sets") },
+  { id: "reps", width: getDefaultColumnWidth("reps") },
+  { id: "load", width: getDefaultColumnWidth("load") },
+  { id: "rpe", width: getDefaultColumnWidth("rpe") },
+  { id: "intensity", width: getDefaultColumnWidth("intensity") },
+  { id: "rest", width: getDefaultColumnWidth("rest") },
+  { id: "notes", width: getDefaultColumnWidth("notes") },
+  { id: "video", width: getDefaultColumnWidth("video") },
+  { id: "tempo", width: getDefaultColumnWidth("tempo") },
+  { id: "superset", width: getDefaultColumnWidth("superset") },
 ];
 
-const DEFAULT_DYNAMIC_COLUMN_WIDTH = "1fr";
+const DEFAULT_DYNAMIC_COLUMN_WIDTH = 150;
 const BASE_COLUMN_IDS = new Set(INITIAL_COLUMNS.slice(0, 8).map((column) => column.id));
+const createDefaultRowHeights = (rows: ProgramRow[]): Record<string, number> =>
+  rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.id] = DEFAULT_ROW_HEIGHT;
+    return acc;
+  }, {});
 
 const generateInitialRows = (count: number): ProgramRow[] => {
   const rows: ProgramRow[] = [];
@@ -55,12 +61,15 @@ interface TableState {
   isDraggingSelection: boolean;
   zoomLevel: number;
   columns: ColumnDefinition[];
+  rowHeights: Record<string, number>;
   // Actions
   setActiveWeek: (weekId: string) => void;
   setActiveCell: (rowId: string | null, field?: string) => void;
   updateRow: (weekId: string, rowId: string, field: string, value: any) => void;
   addRow: (weekId: string, index?: number) => void;
   addColumn: (weekId: string) => void;
+  setColumnWidth: (columnId: string, width: number) => void;
+  setRowHeight: (rowId: string, height: number) => void;
   deleteColumn: (columnId: string) => void;
   deleteRow: (weekId: string, rowId: string) => void;
   duplicateDay: (weekId: string) => void;
@@ -108,6 +117,7 @@ export const useTableStore = create<TableState>()(
       isDraggingSelection: false,
       zoomLevel: 12,
       columns: INITIAL_COLUMNS,
+      rowHeights: createDefaultRowHeights(INITIAL_ROWS),
       setActiveWeek: (weekId) => set((state) => ({ activeWeekId: weekId })),
       setActiveCell: (rowId, field) => set(() => {
         if (!rowId || !field) return { activeCell: null };
@@ -153,7 +163,13 @@ export const useTableStore = create<TableState>()(
             days: [{ ...day, rows: newRows }]
           };
         });
-        return { weeks: newWeeks };
+        return {
+          weeks: newWeeks,
+          rowHeights: {
+            ...state.rowHeights,
+            [newEmptyRow.id]: DEFAULT_ROW_HEIGHT,
+          },
+        };
       }),
       addColumn: (weekId) => set((state) => {
         const newColumn: ColumnDefinition = {
@@ -182,6 +198,20 @@ export const useTableStore = create<TableState>()(
           weeks: newWeeks,
         };
       }),
+      setColumnWidth: (columnId, width) => set((state) => ({
+        columns: state.columns.map((column) =>
+          column.id === columnId
+            ? { ...column, width: Math.max(MIN_COLUMN_WIDTH, Math.round(width)) }
+            : column
+        ),
+      })),
+      setRowHeight: (rowId, height) =>
+        set((state) => ({
+          rowHeights: {
+            ...state.rowHeights,
+            [rowId]: Math.max(MIN_ROW_HEIGHT, Math.round(height)),
+          },
+        })),
       deleteColumn: (columnId) => set((state) => {
         if (BASE_COLUMN_IDS.has(columnId)) {
           return state;
@@ -243,7 +273,9 @@ export const useTableStore = create<TableState>()(
             }))
           };
         });
-        return { weeks: newWeeks };
+        const nextRowHeights = { ...state.rowHeights };
+        delete nextRowHeights[rowId];
+        return { weeks: newWeeks, rowHeights: nextRowHeights };
       }),
       duplicateDay: (weekId) => set((state) => {
         // duplicate rows of the currently active day - simplify logic to just append a copy

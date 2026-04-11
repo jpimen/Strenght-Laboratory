@@ -80,7 +80,7 @@ export const EditableCell = ({ rowId, field, value, className, align = "center",
       onMouseDown={handleMouseDown}
       onMouseEnter={handleMouseEnter}
       className={cn(
-        "px-2 py-3 border-r border-[#333] flex items-center cursor-cell h-full min-h-[44px] transition-all duration-75 relative",
+        "px-2 py-1 border-r border-[#333] flex items-center cursor-cell h-full overflow-hidden transition-all duration-75 relative",
         align === "left" && "justify-start px-4",
         align === "center" && "justify-center text-center",
         align === "right" && "justify-end",
@@ -99,7 +99,7 @@ export const EditableCell = ({ rowId, field, value, className, align = "center",
             onChange={(e) => setLocalValue(e.target.value)}
             onBlur={handleBlur}
             className={cn(
-              "w-full bg-transparent border-none outline-none font-sans transition-all duration-200",
+              "w-full h-full bg-transparent border-none outline-none font-sans transition-all duration-200",
               align === "left" && "text-left",
               align === "center" && "text-center",
               align === "right" && "text-right",

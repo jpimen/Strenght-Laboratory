@@ -10,7 +10,7 @@ import { WeekTabs } from "./WeekTabs";
 import { SummaryPanel } from "./SummaryPanel";
 import { Copy, Plus, RotateCcw, Settings, Download, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getGridStyle } from "../utils/grid";
+import { DEFAULT_ROW_HEIGHT, getGridStyle } from "../utils/grid";
 
 export const ProgramTable = () => {
   useKeyboardNav();
@@ -112,17 +112,17 @@ export const ProgramTable = () => {
           {Array.from({ length: Math.max(0, 15 - rows.length) }).map((_, idx) => (
             <div 
               key={`empty-${idx}`} 
-              className="grid w-max border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
-              style={{ fontSize: `${zoomLevel}px`, ...gridStyle }}
+              className="grid w-max border-b border-[#222] hover:bg-[#1a1a1a] transition-colors pointer-events-none"
+              style={{ fontSize: `${zoomLevel}px`, height: `${DEFAULT_ROW_HEIGHT}px`, ...gridStyle }}
             >
-              <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#333] font-sans font-bold flex items-center justify-center shrink-0 w-[40px] sticky left-0 z-10">
+              <div className="border-r border-[#333] text-center bg-[#181818] text-[#333] font-sans font-bold flex items-center justify-center shrink-0 w-[40px] sticky left-0 z-10 h-full">
                 {rows.length + idx + 1}
               </div>
               {columns.map((col, cIdx) => (
                 <div 
                   key={cIdx} 
                   className={cn(
-                    "px-4 py-3",
+                    "px-4 h-full",
                     cIdx !== columns.length - 1 && "border-r border-[#333]"
                   )}
                 />
