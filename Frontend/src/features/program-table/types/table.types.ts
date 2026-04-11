@@ -8,16 +8,15 @@ export interface CellStyle {
   backgroundColor?: string;
 }
 
+export interface ColumnDefinition {
+  id: string; // The field key in the row object (e.g., 'exercise' or 'A', 'B')
+  label: string; // The display name
+  width: string; // CSS width (e.g., '2.5fr' or '150px')
+}
+
 export interface ProgramRow {
   id: string;
-  exercise: string;
-  sets: number;
-  reps: string; // string to accommodate "8-10" or "FAIL"
-  load: string; // string to accommodate "75% 1RM" or "60 KG"
-  rpe: string; // string for "8.5"
-  intensity: IntensityLevel;
-  rest: number; // in seconds
-  notes: string;
+  [key: string]: any; // Allow unlimited dynamic columns
   cellStyles?: Record<string, CellStyle>;
 }
 

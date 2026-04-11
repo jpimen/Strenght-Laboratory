@@ -2,12 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTableStore } from "../store/tableStore";
-import { ProgramRow } from "../types/table.types";
 import { cn } from "@/lib/utils";
 
 interface EditableCellProps {
   rowId: string;
-  field: keyof ProgramRow;
+  field: string;
   value: string | number;
   className?: string;
   align?: "left" | "center" | "right";
@@ -15,13 +14,39 @@ interface EditableCellProps {
 }
 
 export const EditableCell = ({ rowId, field, value, className, align = "center", isHeaderFeature }: EditableCellProps) => {
-  const { activeCell, setActiveCell, updateRow, activeWeekId, zoomLevel, weeks } = useTableStore();
+  const { activeCell, setActiveCell, updateRow, activeWeekId, zoomLevel, weeks, selectionStart, selectionEnd, setSelectionStart, setSelectionEnd, isDraggingSelection } = useTableStore();
   const [localValue, setLocalValue] = useState(value);
   const isEditing = activeCell?.rowId === rowId && activeCell?.field === field;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const row = weeks.find(w => w.id === activeWeekId)?.days[0]?.rows.find(r => r.id === rowId);
+  const activeWeek = weeks.find(w => w.id === activeWeekId);
+  const rows = activeWeek?.days[0]?.rows || [];
+  const { columns } = useTableStore();
+  const fields = columns.map(c => c.id);
+
+  const row = rows.find(r => r.id === rowId);
   const cellStyle = row?.cellStyles?.[field] || {};
+
+  const isSelected = (() => {
+    if (!selectionStart || !selectionEnd) return false;
+    
+    const startRowIdx = rows.findIndex(r => r.id === selectionStart.rowId);
+    const endRowIdx = rows.findIndex(r => r.id === selectionEnd.rowId);
+    const startFieldIdx = fields.indexOf(selectionStart.field);
+    const endFieldIdx = fields.indexOf(selectionEnd.field);
+    
+    const currentRowIdx = rows.findIndex(r => r.id === rowId);
+    const currentFieldIdx = fields.indexOf(field);
+    
+    if (currentRowIdx === -1 || startRowIdx === -1 || endRowIdx === -1) return false;
+    
+    const rMin = Math.min(startRowIdx, endRowIdx);
+    const rMax = Math.max(startRowIdx, endRowIdx);
+    const fMin = Math.min(startFieldIdx, endFieldIdx);
+    const fMax = Math.max(startFieldIdx, endFieldIdx);
+    
+    return currentRowIdx >= rMin && currentRowIdx <= rMax && currentFieldIdx >= fMin && currentFieldIdx <= fMax;
+  })();
 
   useEffect(() => {
     setLocalValue(value);
@@ -35,25 +60,35 @@ export const EditableCell = ({ rowId, field, value, className, align = "center",
 
   const handleBlur = () => {
     updateRow(activeWeekId, rowId, field, localValue);
-    // Don't close active cell here because blurring happens when clicking another cell
   };
 
-  const handleClick = () => {
-    setActiveCell(rowId, field);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // If it's a right click, don't start selection override
+    if (e.button !== 0) return;
+    e.preventDefault(); // Stop native browser text selection
+    setSelectionStart(rowId, field);
+  };
+
+  const handleMouseEnter = () => {
+    if (isDraggingSelection) {
+      setSelectionEnd(rowId, field);
+    }
   };
 
   return (
     <div
-      onClick={handleClick}
-        className={cn(
-          "px-2 py-3 border-r border-[#333] flex items-center cursor-cell h-full min-h-[44px] transition-colors duration-200",
-          align === "left" && "justify-start px-4",
-          align === "center" && "justify-center text-center",
-          align === "right" && "justify-end",
-          isEditing && "border border-[#facc15] shadow-[inset_0_0_0_1px_rgba(250,204,21,1)] bg-[#1a180a]",
-          isHeaderFeature && !isEditing && "text-[#d4d4d4] bg-[#1a180a]", // Special formatting for exercise column
-          className
-        )}
+      onMouseDown={handleMouseDown}
+      onMouseEnter={handleMouseEnter}
+      className={cn(
+        "px-2 py-3 border-r border-[#333] flex items-center cursor-cell h-full min-h-[44px] transition-all duration-75 relative",
+        align === "left" && "justify-start px-4",
+        align === "center" && "justify-center text-center",
+        align === "right" && "justify-end",
+        isEditing && "z-10 ring-1 ring-[#facc15] bg-[#1a180a]",
+        isSelected && "bg-[#1a73e8]/20 ring-1 ring-[#1a73e8]/50 inset-shadow-sm",
+        isHeaderFeature && !isEditing && !isSelected && "text-[#d4d4d4] bg-[#1a180a]", 
+        className
+      )}
         style={{ backgroundColor: isEditing ? undefined : cellStyle.backgroundColor }}
       >
         {isEditing ? (

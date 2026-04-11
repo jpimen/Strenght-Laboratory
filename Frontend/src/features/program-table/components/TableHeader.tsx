@@ -1,31 +1,24 @@
+import { useTableStore } from "../store/tableStore";
+
 export const TableHeader = () => {
+  const { columns } = useTableStore();
+  
+  const gridTemplate = `40px ${columns.map(c => c.width).join(' ')}`;
+
   return (
-    <div className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#333] bg-[#1a1a1a] text-[#777] text-[10px] font-sans font-bold tracking-widest uppercase sticky top-0 z-10">
+    <div 
+      className="grid border-b border-[#333] bg-[#1a1a1a] text-[#777] text-[10px] font-sans font-bold tracking-widest uppercase sticky top-0 z-10"
+      style={{ gridTemplateColumns: gridTemplate }}
+    >
       <div className="px-3 py-3 border-r border-[#333]"></div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        A: EXERCISE
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        B: SETS
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        C: REPS
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        D: LOAD (%/KG)
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        E: RPE
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        F: INTENSITY
-      </div>
-      <div className="px-3 py-3 border-r border-[#333] flex items-center justify-center">
-        G: REST (S)
-      </div>
-      <div className="px-3 py-3 flex items-center justify-center">
-        H: NOTES
-      </div>
+      {columns.map((col, idx) => (
+        <div 
+          key={col.id} 
+          className={`px-3 py-3 ${idx === columns.length - 1 ? '' : 'border-r border-[#333]'} flex items-center justify-center`}
+        >
+          {col.label}
+        </div>
+      ))}
     </div>
   );
 };

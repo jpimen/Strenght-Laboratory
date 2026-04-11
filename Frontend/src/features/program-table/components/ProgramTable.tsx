@@ -9,15 +9,23 @@ import { Toolbar } from "./Toolbar";
 import { WeekTabs } from "./WeekTabs";
 import { SummaryPanel } from "./SummaryPanel";
 import { Copy, Plus, RotateCcw, Settings, Download } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const ProgramTable = () => {
   useKeyboardNav();
-  const { meta, weeks, activeWeekId, addRow, duplicateDay, zoomLevel } = useTableStore();
+  const { meta, weeks, activeWeekId, addRow, duplicateDay, zoomLevel, setIsDraggingSelection, columns } = useTableStore();
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     setHasHydrated(true);
-  }, []);
+
+    const handleGlobalMouseUp = () => {
+      setIsDraggingSelection(false);
+    };
+
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, [setIsDraggingSelection]);
 
   if (!hasHydrated) {
     return (
@@ -29,12 +37,13 @@ export const ProgramTable = () => {
   
   const activeWeek = weeks.find(w => w.id === activeWeekId);
   const rows = activeWeek?.days[0]?.rows || [];
+  const gridTemplate = `40px ${columns.map(c => c.width).join(' ')}`;
 
   return (
-    <div className="h-screen w-full bg-[#0d0d0d] text-[#a0a0a0] font-mono flex flex-col">
+    <div className="h-screen w-full bg-[#0d0d0d] text-[#a0a0a0] font-mono flex flex-col overflow-hidden">
       {/* Top Navbar */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-[#222] bg-[#111]">
-        <h1 className="text-2xl font-black text-[#facc15] tracking-[0.1em] font-sans">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-[#222] bg-[#111] shrink-0">
+        <h1 className="text-2xl font-black text-[#facc15] tracking-[0.1em] font-sans uppercase italic">
           THE GILDED LABORATORY
         </h1>
         <div className="flex space-x-10 font-black font-sans tracking-widest text-xs">
@@ -53,7 +62,7 @@ export const ProgramTable = () => {
       </div>
 
       {/* Program Info & Actions */}
-      <div className="px-8 py-8 border-b border-[#222] bg-[#141414]">
+      <div className="px-8 py-8 border-b border-[#222] bg-[#141414] shrink-0">
         <div className="flex justify-between items-start">
           <div className="flex space-x-16">
             <div>
@@ -90,34 +99,38 @@ export const ProgramTable = () => {
       <WeekTabs />
 
       {/* Grid Content */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto bg-[#141414]">
-        <div className="min-w-[1200px]">
+      <div className="flex-1 overflow-y-auto bg-[#141414] select-none">
+        <div className="min-w-full">
           <TableHeader />
           {rows.map((row, idx) => (
             <TableRow key={row.id} row={row} index={idx} />
           ))}
+          
           {/* Empty padding rows for look and feel */}
           {Array.from({ length: Math.max(0, 15 - rows.length) }).map((_, idx) => (
             <div 
               key={`empty-${idx}`} 
-              className="grid grid-cols-[40px_2.5fr_1fr_1fr_1.5fr_1fr_1fr_1fr_3.5fr] border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
-              style={{ fontSize: `${zoomLevel}px` }}
+              className="grid border-b border-[#222] h-11 hover:bg-[#1a1a1a] transition-colors pointer-events-none"
+              style={{ fontSize: `${zoomLevel}px`, gridTemplateColumns: gridTemplate }}
             >
-              <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#555] font-sans font-bold">{rows.length + idx + 1}</div>
-              <div className="px-4 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-2 py-3 border-r border-[#333]"></div>
-              <div className="px-4 py-3"></div>
+              <div className="px-2 py-3 border-r border-[#333] text-center bg-[#181818] text-[#333] font-sans font-bold flex items-center justify-center shrink-0 w-[40px]">
+                {rows.length + idx + 1}
+              </div>
+              {columns.map((col, cIdx) => (
+                <div 
+                  key={cIdx} 
+                  className={cn(
+                    "px-4 py-3",
+                    cIdx !== columns.length - 1 && "border-r border-[#333]"
+                  )}
+                />
+              ))}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer Actions */}
       <div className="px-8 py-5 bg-[#0a0a0a] flex justify-between items-center border-t border-[#333] font-sans shrink-0">
         <div className="flex space-x-4">
           <button onClick={() => addRow(activeWeekId)} className="bg-[#facc15] hover:bg-[#eab308] text-black font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm shadow-md">
@@ -129,7 +142,13 @@ export const ProgramTable = () => {
             <span>Duplicate Day</span>
           </button>
         </div>
-        <SummaryPanel />
+        <div className="flex items-center space-x-4">
+          <button onClick={() => addRow(activeWeekId)} className="bg-[#facc15] hover:bg-[#eab308] text-black font-black uppercase text-[11px] tracking-widest px-5 py-2 flex items-center space-x-2 transition-colors rounded-sm shadow-md">
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Add Row</span>
+          </button>
+          <SummaryPanel />
+        </div>
       </div>
     </div>
   );
